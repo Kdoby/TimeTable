@@ -1,7 +1,7 @@
 import {useState} from "react";
 
 export default function AddTimeTable ({isOpen, closeModal, onAdd}) {
-    const [form, setForm] = useState({subject: "", instructor: "", times: []});
+    const [form, setForm] = useState({subject: "", instructor: "", times: [], color: ""});
     const [timeInput, setTimeInput] = useState({day: "", startTime: "", endTime: "", loca:""});
 
     const addTimeToForm = () => {
@@ -20,11 +20,13 @@ export default function AddTimeTable ({isOpen, closeModal, onAdd}) {
         const newItem = {
             subject: form.subject,
             instructor: form.instructor,
-            times: form.times
+            times: form.times,
+            color: form.color
         }
-        event.preventDefault();
 
         onAdd(newItem);
+        setForm({subject: "", instructor: "", times: [], color: ""});
+        setTimeInput({day: "", startTime: "", endTime: "", loca:""});
     }
     return (
         <div style={{display:isOpen?"block": "none",
@@ -62,8 +64,11 @@ export default function AddTimeTable ({isOpen, closeModal, onAdd}) {
                      <p>teacher : </p>
                      <input type="text" value={form.instructor}
                             onChange={(e) => setForm({ ...form, instructor: e.target.value})}></input>
-                     <br />
-                     <div>
+                     <br /><br />
+                    color :&nbsp;&nbsp;&nbsp;
+                     <input type="color" value={timeInput.color} onChange={(e) => setForm({...form, color: e.target.value})} />
+                    <br/>
+                    <div>
                         <ul style={{listStyle: "none", padding:0}}>
                             {form.times.map((time, index) => (
                                 <li key={index} style={{backgroundColor: "lightgray"}}>
@@ -88,7 +93,8 @@ export default function AddTimeTable ({isOpen, closeModal, onAdd}) {
                                    onChange={(e) => setTimeInput({...timeInput, endTime: e.target.value})} />
                             <input type="text" value={timeInput.loca}
                                    onChange={(e) => setTimeInput({...timeInput, loca: e.target.value})} placeholder="장소/메모"/>
-                            <button onClick={addTimeToForm}>ADD</button>
+
+                         <button onClick={addTimeToForm}>ADD</button>
                      </div>
 
                      <br/>

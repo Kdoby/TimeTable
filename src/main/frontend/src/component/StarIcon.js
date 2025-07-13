@@ -1,12 +1,13 @@
+import {useState} from "react";
+
 export default function StarIcon ({isMain, updateIsMain}) {
-    const imgSrc = isMain ? "/truestar.png" : "/falsestar.png";
     const handleClick = () => {
         if(isMain){
             return;
         }
-        updateIsMain(!isMain);
+        updateIsMain(true);
     }
     return (
-        <img style={{width: "30px"}} src={imgSrc} alt={"Star"} onClick={handleClick}/>
+        <img style={{width: "30px"}} src={isMain ? "/truestar.png" : "/falsestar.png"} alt={"Star"} onClick={handleClick}/>
     )
 }

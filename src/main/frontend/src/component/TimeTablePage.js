@@ -16,32 +16,40 @@ export default function TimeTablePage() {
     }
     const [tableList, setTableList] = useState([]);
     const [timeItem, setTimeItem] = useState([]);
+
+    // 테이블 리스트 조회
+    const fetchTimeTable = async () => {
+        try {
+            const response = await axios.get('/api/timetable/' + userName);
+            setTableList(response.data.data);
+            console.log(response.data.message);
+        } catch (e) {
+            console.error("fail fetch: ", e);
+        }
+    };
     useEffect(() => {
         if(!userName) return;
         console.log("userName:", userName);
-        const fetchTimeTable = async () => {
-            try {
-                const response = await axios.get('/api/timetable/' + userName);
-                setTableList(response.data.data);
-                console.log(response.data.message);
-            } catch (e) {
-                console.error("fail fetch: ", e);
-            }
-        };
+            fetchTimeTable();
+            console.log("semester: ", tableList);
+    }, [userName]);
+
+    useEffect(()=> {
+        if(!userName || !selectedTable) return;
+        console.log("userName:", userName, "선택된 테이블: ", selectedTable);
+        // 세부 시간표 리스트 조회
         const fetchTimeItem = async () => {
             try {
-                const timeItemRes = await axios.get('/api/timetable/detail/' + userName);
+                const timeItemRes = await axios.get('/api/timetable/detail/' + selectedTable.id);
                 setTimeItem(timeItemRes.data.data);
                 console.log(timeItemRes.data.message);
             } catch (e) {
                 console.error("fail fetch: ", e);
             }
-        }
-            fetchTimeTable();
-            fetchTimeItem();
-            console.log("semester: ", tableList);
-            console.log("timeitem: ", timeItem);
-    }, [userName]);
+        };
+        fetchTimeItem();
+        console.log("timeitem: ", timeItem);
+    }, [selectedTable]);
 
     /* 시간표 추가 버튼 */
     const [isTableModalOpen, setIsTableModalOpen] = useState(false);
@@ -58,20 +66,22 @@ export default function TimeTablePage() {
     const handleAddTable = (newTableName) => {
         console.log("전달받은 테이블 이름:", newTableName, typeof newTableName);
         console.log("유저이름", userName);
-        const fetchTimeTable = async () => {
+        const AddTimeTable = async () => {
             try {
                 const response = await axios.post('/api/timetable', {
                     userId: userName,
                     name: newTableName
                 });
                 console.log("서버 응답:", response.data.message);
-                alert("semester 저장 완료");
+                if(response.data.success) {
+                    alert("semester 저장 완료");
+                }
             } catch (e) {
                 console.error("fail fetch: ", e);
                 alert("semester 저장 실패");
             }
         };
-        fetchTimeTable();
+        AddTimeTable();
     }
 
     // 시간표 수정(isMain 변경)
@@ -87,6 +97,7 @@ export default function TimeTablePage() {
                 });
                 console.log("시간표 isMain 수정: ", updateRes.data.message);
                 setSelectiveTable((prev) => ({...prev, isMain: newIsMain}));
+                fetchTimeTable();
             } catch (e) {
                 console.error("fail fetch: ", e);
             }
@@ -102,7 +113,7 @@ export default function TimeTablePage() {
                         userId: userName,
                         title: newItem.subject,
                         instructor: newItem.instructor,
-                        color: "#add8e6"
+                        color: newItem.color
                     });
 
                     const course_id = courseRes.data.data;
@@ -133,17 +144,19 @@ export default function TimeTablePage() {
 
     return (
         <div style={{display:"flex", padding:"210px"}}>
-            <input type="text"  onChange={(e) => setUserName(e.target.value)} />
+            <input type="text"  onChange={(e) => {
+                setUserName(e.target.value);
+            }} />
             <div>
             <button onClick={openTableModal}>+</button> // semester 추가버튼
             </div>
-            <SemesterList semesterList={tableList} changeTable={changeTable} />
+            <SemesterList semesterList={tableList} changeTable={changeTable} fetchTable={fetchTimeTable}/>
             <AddTable isOpen={isTableModalOpen} closeModal={closeTableModal} onAdd={handleAddTable}/>
             <SubjectList subjectList={timeItem}/>
             <div>
             <button onClick={openSubModal}>+</button> // subject 추가버튼
             </div>
-            <TimeTable curTable={selectedTable} timeItem={timeItem} updateIsMain={updateIsMain}/>
+            <TimeTable curTable={selectedTable} timeItem={timeItem} updateIsMain={updateIsMain} setTimeItem={setTimeItem}/>
             <AddTimeTable isOpen={isSubModalOpen} closeModal={closeSubModal} onAdd={handleAddItem}/>
         </div>
     );
